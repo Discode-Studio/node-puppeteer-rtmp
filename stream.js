@@ -9,9 +9,9 @@ module.exports.stream = async function (options) {
 
   const ffmpegPath = options.ffmpeg || 'ffmpeg';
   const fps = options.fps || 30;
-  const resolution = options.resolution || '1280x720';
+  const resolution = options.resolution || '2480x1080';
   const preset = options.preset || 'medium';
-  const rate = options.rate || '2500k';
+  const rate = options.rate || '3700k';
   const threads = options.threads || '2';
   const outUrl = options.output || 'rtmp://a.rtmp.youtube.com/live2/';
 
@@ -39,6 +39,7 @@ module.exports.stream = async function (options) {
     });
   }
 
+  // Boucle de rendu
   while (true) {
     await options.render(browser, page);
     const screenshot = await page.screenshot({ type: 'jpeg' });
@@ -51,9 +52,9 @@ const ffmpegArgs = ({ fps, resolution = '1280x720', preset = 'medium', rate = '2
   '-f', 'image2pipe',
   '-use_wallclock_as_timestamps', '1',
   '-i', '-',  // Capture d'image à partir du stdin
-  // Spécifier la source audio (peut être un flux ou un fichier, selon votre configuration)
-  '-f', 'pulse',      // Utiliser PulseAudio comme source d'audio (si sur Linux)
-  '-i', 'default',    // Utiliser le périphérique audio par défaut
+  // Capturer l'audio du navigateur (modifiez selon votre OS)
+  '-f', 'lavfi',      // Utiliser PulseAudio pour Linux
+  '-i', 'default',    // Périphérique audio par défaut, changez si nécessaire
   // OUT
   '-deinterlace',
   '-s', resolution,
@@ -69,9 +70,9 @@ const ffmpegArgs = ({ fps, resolution = '1280x720', preset = 'medium', rate = '2
   '-bufsize', rate,
   '-pix_fmt', 'yuv420p',
   '-threads', threads,
-  // Mixer vidéo et audio
-  '-map', '0:v',        // carte la vidéo de l'entrée 0
-  '-map', '1:a',        // carte l'audio de l'entrée 1
+  // Mapper la vidéo et l'audio
+  '-map', '0:v',        // Vidéo de l'entrée 0 (images)
+  '-map', '1:a',        // Audio de l'entrée 1 (audio du navigateur)
   '-acodec', 'aac',     // Codec audio pour la sortie
   '-b:a', '128k',       // Bitrate audio
   '-ar', '44100',       // Fréquence d'échantillonnage
