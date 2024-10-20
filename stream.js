@@ -56,24 +56,29 @@ const ffmpegArgs = ({ fps, resolution = '1280x720', preset = 'medium', rate = '2
   '-f', 'image2pipe',
   '-use_wallclock_as_timestamps', '1',
   '-i', '-',
-  '-f', 'lavfi', 
-  '-i', 'default',
+  // Ajouter une entrée audio à partir de l'audio système ou d'une source audio
+  '-f', 'pulse', // Utiliser 'pulse' pour l'audio sur Linux ou 'dshow' pour Windows
+  '-i', 'default', // 'default' pour le périphérique audio par défaut
   // OUT
   '-deinterlace',
-  '-s', resolution,  // Utilisation correcte de la résolution
+  '-s', resolution,
   '-vsync', 'cfr',
   '-r', fps,
   '-g', (fps * 2),
   '-vcodec', 'libx264',
   '-x264opts', 'keyint=' + (fps * 2) + ':no-scenecut',
   '-preset', preset,
-  '-b:v', rate,  // Bitrate vidéo correct
+  '-b:v', rate,
   '-minrate', rate,
   '-maxrate', rate,
   '-bufsize', rate,
   '-pix_fmt', 'yuv420p',
   '-threads', threads,
-  // Remplacer par AAC pour YouTube
-  '-f', 'lavfi', '-acodec', 'aac', '-ar', '44100', '-b:a', '128k',
-  '-f', 'flv',
+  // Encode l'audio
+  '-acodec', 'aac', // Codec audio
+  '-b:a', '128k', // Bitrate audio
+  '-ar', '44100', // Fréquence d'échantillonnage
+  '-f', 'flv', // Format de sortie
 ];
+
+// Assurez-vous que vous avez installé 'pulseaudio' ou un autre moteur audio sur Linux
