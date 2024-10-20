@@ -52,11 +52,12 @@ module.exports.stream = async function (options) {
 };
 
 const ffmpegArgs = ({ fps, resolution = '1280x720', preset = 'medium', rate = '2500k', threads = 2 }) => [
-  // IN
+  // IN pour l'image
   '-f', 'image2pipe',
   '-use_wallclock_as_timestamps', '1',
   '-i', '-',
-  '-f', 'aac',
+  // IN pour l'audio : utiliser anullsrc si aucune source audio n'est disponible
+  '-f', 'lavfi', '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100',
   // OUT
   '-deinterlace',
   '-s', resolution,  // Utilisation correcte de la résolution
@@ -72,7 +73,8 @@ const ffmpegArgs = ({ fps, resolution = '1280x720', preset = 'medium', rate = '2
   '-bufsize', rate,
   '-pix_fmt', 'yuv420p',
   '-threads', threads,
-  // Remplacer par AAC pour YouTube
-  '-f', 'lavfi', '-acodec', 'aac', '-ar', '44100', '-b:a', '128k',
+  // Mixer vidéo et audio
+  '-map', '0:v',        // carte la vidéo de l'entrée 0
+  '-map', '1:a',        // carte l'audio de l'entrée 1 (anullsrc)
   '-f', 'flv',
 ];
