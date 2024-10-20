@@ -1,4 +1,4 @@
-aconst { spawn } = require('child_process');
+const { spawn } = require('child_process');
 const puppeteer = require('puppeteer');
 
 module.exports.stream = async function (options) {
