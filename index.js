@@ -11,7 +11,7 @@ puppeteer.launch({
 
   await stream({
     page: page,
-    key: 'your_youtube_key',
+    key: 'raum-1y41-qr0d-sf1m-5udu',
     fps: 30,
     prepare: function (browser, page) { },
     render: function (browser, page, frame) { }
