@@ -1,0 +1,24 @@
+name: Run Caddy
+
+on:
+  schedule:
+    - cron: "01 */6 * * *"  # Toutes les 6 heures
+  workflow_dispatch:   
+
+jobs:
+  run-caddy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Download rtmp
+        run: |
+          pip install ffmpeg 
+          sudo apt-get install ffmpeg 
+          npm i puppeteer
+          sudo apt-get install xvfb
+          
+      - name: Run rtmp
+        run: node stream.js & node index.js
