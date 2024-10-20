@@ -3,7 +3,7 @@ const { stream } = require('./stream.js');
 
 puppeteer.launch({
   headless: true,
-  args: ["--no-sandbox", "--disable-setuid-sandbox"]
+  args: ["--no-sandbox", "--disable-setuid-sandbox", "--autoplay-policy=no-user-gesture-required"]
 }).then(async browser => {
   const page = await browser.newPage();
 
