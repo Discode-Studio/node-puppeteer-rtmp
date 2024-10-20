@@ -21,4 +21,4 @@ jobs:
           sudo apt-get install xvfb
           
       - name: Run rtmp
-        run: node stream.js & node index.js
+        run: node index.js
