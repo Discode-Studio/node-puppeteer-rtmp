@@ -56,23 +56,22 @@ const ffmpegArgs = ({ fps, resolution = '1920x1080', preset = 'medium', rate = '
   '-f', 'image2pipe',
   '-use_wallclock_as_timestamps', '1',
   '-i', '-', // Entrée vidéo
-  '-f', 'alsa', '-i', 'default', // Capture audio depuis la carte son par défaut
+  '-f', 'alsa', '-i', 'default', // Remplacez 'alsa' par 'pulse' si vous utilisez PulseAudio
   // OUT
-  '-deinterlace',
-  '-s', resolution,  // Utilisation correcte de la résolution
-  '-vsync', 'cfr',
+  '-s', resolution,
   '-r', fps,
   '-g', (fps * 2),
   '-vcodec', 'libx264',
-  '-x264opts', 'keyint=' + (fps * 2) + ':no-scenecut',
   '-preset', preset,
-  '-b:v', rate,  // Bitrate vidéo correct
+  '-b:v', rate,
   '-minrate', rate,
   '-maxrate', rate,
   '-bufsize', rate,
   '-pix_fmt', 'yuv420p',
-  '-threads', threads,
-  // Remplacer par AAC pour YouTube
-  '-f', 'lavfi', '-acodec', 'aac', '-ar', '44100', '-b:a', '128k', // Configuration audio
   '-f', 'flv',
+  '-acodec', 'aac', // Codec audio
+  '-b:a', '128k',   // Bitrate audio
+  '-ar', '44100',   // Taux d'échantillonnage audio
+  // Ajoutez ici le nom de sortie
+  '-f', 'flv',      // Format de sortie
 ];
