@@ -7,20 +7,30 @@ module.exports.stream = async function (options) {
 
   await options.prepare(browser, page);
 
-  const ffmpegPath = options.ffmpeg || 'ffmpeg';
-  const fps = options.fps || 30;
-  const resolution = options.resolution || '1280x720';
-  const preset = options.preset || 'medium';
-  const rate = options.rate || '2500k';
-  const threads = options.threads || '2';
+  var ffmpegPath = options.ffmpeg || 'ffmpeg';
+  var fps = options.fps || 30;
+  var resolution = options.resolution || '1280x720';
+  var preset = options.preset || 'medium';
+  var rate = options.rate || '2500k';
+  var threads = options.threads || '2';
 
-  const outUrl = options.output || 'rtmp://a.rtmp.youtube.com/live2/';
+  var outUrl = options.output || 'rtmp://a.rtmp.youtube.com/live2/';
 
-  const args = ffmpegArgs({ fps, resolution, preset, rate, threads });
-  const fullUrl = outUrl + options.key;
+  // Passer les paramètres correctement à ffmpegArgs
+  const args = ffmpegArgs({
+    fps: fps,
+    resolution: resolution,
+    preset: preset,
+    rate: rate,
+    threads: threads
+  });
+
+  var fullUrl = outUrl + options.key;
   args.push(fullUrl);
 
   const ffmpeg = spawn(ffmpegPath, args);
+
+  let screenshot = null;
 
   // Afficher les logs pour comprendre les erreurs
   if (options.pipeOutput) {
@@ -32,61 +42,37 @@ module.exports.stream = async function (options) {
     });
   }
 
-  ffmpeg.on('error', (err) => {
-    console.error('Error starting ffmpeg:', err);
-  });
-
-  ffmpeg.on('exit', (code) => {
-    console.log(`ffmpeg exited with code ${code}`);
-  });
-
-  ffmpeg.stdin.on('error', (err) => {
-    console.error('Error on ffmpeg stdin:', err);
-  });
-
-  let screenshot = null;
-
   while (true) {
     await options.render(browser, page);
+
     screenshot = await page.screenshot({ type: 'jpeg' });
 
-    // Vérifiez si ffmpeg est encore en cours d'exécution
-    if (!ffmpeg.killed) {
-      try {
-        await ffmpeg.stdin.write(screenshot);
-      } catch (err) {
-        console.error('Error writing to ffmpeg stdin:', err);
-        break; // Quittez la boucle si une erreur se produit
-      }
-    } else {
-      console.log('ffmpeg process has exited.');
-      break; // Quittez la boucle si ffmpeg est terminé
-    }
+    await ffmpeg.stdin.write(screenshot);
   }
-
-  // Nettoyage
-  ffmpeg.stdin.end(); // Ferme le flux stdin
 };
 
-const ffmpegArgs = ({ fps, resolution = '2480x720', preset = 'medium', rate = '2500k', threads = 2 }) => [
+const ffmpegArgs = ({ fps, resolution = '1280x720', preset = 'medium', rate = '2500k', threads = 2 }) => [
+  // IN
   '-f', 'image2pipe',
   '-use_wallclock_as_timestamps', '1',
   '-i', '-',
   '-f', 'lavfi', '-i', '-',
+  // OUT
   '-deinterlace',
-  '-s', resolution,
+  '-s', resolution,  // Utilisation correcte de la résolution
   '-vsync', 'cfr',
   '-r', fps,
   '-g', (fps * 2),
   '-vcodec', 'libx264',
   '-x264opts', 'keyint=' + (fps * 2) + ':no-scenecut',
   '-preset', preset,
-  '-b:v', rate,
+  '-b:v', rate,  // Bitrate vidéo correct
   '-minrate', rate,
   '-maxrate', rate,
   '-bufsize', rate,
   '-pix_fmt', 'yuv420p',
   '-threads', threads,
+  // Remplacer par AAC pour YouTube
   '-f', 'lavfi', '-acodec', 'aac', '-ar', '44100', '-b:a', '128k',
   '-f', 'flv',
 ];
