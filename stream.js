@@ -1,4 +1,4 @@
-const { spawn } = require('child_process');
+aconst { spawn } = require('child_process');
 const puppeteer = require('puppeteer');
 
 module.exports.stream = async function (options) {
@@ -56,7 +56,7 @@ const ffmpegArgs = ({ fps, resolution = '2480x720', preset = 'medium', rate = '2
   '-f', 'image2pipe',
   '-use_wallclock_as_timestamps', '1',
   '-i', '-',
-  '-f', 'lavfi', '-i', 'default', '-c:a', 'aac', 'output.mp4',
+  '-f', 'lavfi', '-i', '-', '-c:a', 'aac',
   // OUT
   '-deinterlace',
   '-s', resolution,  // Utilisation correcte de la résolution
@@ -73,6 +73,6 @@ const ffmpegArgs = ({ fps, resolution = '2480x720', preset = 'medium', rate = '2
   '-pix_fmt', 'yuv420p',
   '-threads', threads,
   // Remplacer par AAC pour YouTube
-  '-f', 'lavfi', '-acodec', 'mp3', '-ar', '44100', '-b:a', '128k',
+  '-f', 'lavfi', '-acodec', 'aac', '-ar', '44100', '-b:a', '128k',
   '-f', 'flv',
 ];
