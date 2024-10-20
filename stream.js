@@ -58,7 +58,7 @@ const ffmpegArgs = ({ fps, resolution = '1280x720', preset = 'medium', rate = '2
   '-i', '-',
   // Ajouter une entrée audio à partir de l'audio système ou d'une source audio
   '-f', 'pulse', // Utiliser 'pulse' pour l'audio sur Linux ou 'dshow' pour Windows
-  '-i', 'default', // 'default' pour le périphérique audio par défaut
+  '-i', '-', // 'default' pour le périphérique audio par défaut
   // OUT
   '-deinterlace',
   '-s', resolution,
