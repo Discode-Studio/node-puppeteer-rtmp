@@ -9,7 +9,7 @@ module.exports.stream = async function (options) {
 
   var ffmpegPath = options.ffmpeg || 'ffmpeg';
   var fps = options.fps || 30;
-  var resolution = options.resolution || '1280x720';
+  var resolution = options.resolution || '1920x1080'; // Résolution modifiée pour le plein écran
   var preset = options.preset || 'medium';
   var rate = options.rate || '2500k';
   var threads = options.threads || '2';
@@ -51,12 +51,12 @@ module.exports.stream = async function (options) {
   }
 };
 
-const ffmpegArgs = ({ fps, resolution = '1280x720', preset = 'medium', rate = '2500k', threads = 2 }) => [
+const ffmpegArgs = ({ fps, resolution = '1920x1080', preset = 'medium', rate = '2500k', threads = 2 }) => [
   // IN
   '-f', 'image2pipe',
   '-use_wallclock_as_timestamps', '1',
-  '-i', '-',
-  '-f', 'lavfi', '-i', 'anullsrc',
+  '-i', '-', // Entrée vidéo
+  '-f', 'alsa', '-i', 'default', // Capture audio depuis la carte son par défaut
   // OUT
   '-deinterlace',
   '-s', resolution,  // Utilisation correcte de la résolution
@@ -73,6 +73,6 @@ const ffmpegArgs = ({ fps, resolution = '1280x720', preset = 'medium', rate = '2
   '-pix_fmt', 'yuv420p',
   '-threads', threads,
   // Remplacer par AAC pour YouTube
-  '-f', 'lavfi', '-acodec', 'aac', '-ar', '44100', '-b:a', '128k',
+  '-f', 'lavfi', '-acodec', 'aac', '-ar', '44100', '-b:a', '128k', // Configuration audio
   '-f', 'flv',
 ];
