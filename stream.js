@@ -16,30 +16,18 @@ module.exports.stream = async function (options) {
 
   var outUrl = options.output || 'rtmp://a.rtmp.youtube.com/live2/';
 
-  // Passer les paramètres correctement à ffmpegArgs
-  const args = ffmpegArgs({
-    fps: fps,
-    resolution: resolution,
-    preset: preset,
-    rate: rate,
-    threads: threads
-  });
+  const args = ffmpegArgs(fps);
 
-  var fullUrl = outUrl + options.key;
+  var fullUrl = outUrl + options.key
   args.push(fullUrl);
 
   const ffmpeg = spawn(ffmpegPath, args);
 
   let screenshot = null;
 
-  // Afficher les logs pour comprendre les erreurs
   if (options.pipeOutput) {
-    ffmpeg.stdout.on('data', (data) => {
-      console.log(`stdout: ${data}`);
-    });
-    ffmpeg.stderr.on('data', (data) => {
-      console.error(`stderr: ${data}`);
-    });
+    ffmpeg.stdout.pipe(process.stdout);
+    ffmpeg.stderr.pipe(process.stderr);
   }
 
   while (true) {
@@ -51,14 +39,12 @@ module.exports.stream = async function (options) {
   }
 };
 
-const ffmpegArgs = ({ fps, resolution = '1280x720', preset = 'medium', rate = '2500k', threads = 2 }) => [
+const ffmpegArgs = (fps) => [
   // IN
   '-f', 'image2pipe',
   '-use_wallclock_as_timestamps', '1',
   '-i', '-',
-  // Ajouter une entrée audio à partir de l'audio système ou d'une source audio
-  '-f', 'tavfi', // Utiliser 'pulse' pour l'audio sur Linux ou 'dshow' pour Windows
-  '-i', 'anullsrc', // 'default' pour le périphérique audio par défaut
+  '-f', 'lavfi', '-i', 'anullsrc',
   // OUT
   '-deinterlace',
   '-s', resolution,
@@ -74,11 +60,6 @@ const ffmpegArgs = ({ fps, resolution = '1280x720', preset = 'medium', rate = '2
   '-bufsize', rate,
   '-pix_fmt', 'yuv420p',
   '-threads', threads,
-  // Encode l'audio
-  '-acodec', 'aac', // Codec audio
-  '-b:a', '128k', // Bitrate audio
-  '-ar', '44100', // Fréquence d'échantillonnage
-  '-f', 'flv', // Format de sortie
+  '-f', 'lavfi', '-acodec', 'libmp3lame', '-ar', '44100', '-b:a', '128k',
+  '-f', 'flv',
 ];
-
-// Assurez-vous que vous avez installé 'pulseaudio' ou un autre moteur audio sur Linux
