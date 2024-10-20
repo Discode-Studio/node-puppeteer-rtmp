@@ -16,18 +16,30 @@ module.exports.stream = async function (options) {
 
   var outUrl = options.output || 'rtmp://a.rtmp.youtube.com/live2/';
 
-  const args = ffmpegArgs(fps);
+  // Passer les paramètres correctement à ffmpegArgs
+  const args = ffmpegArgs({
+    fps: fps,
+    resolution: resolution,
+    preset: preset,
+    rate: rate,
+    threads: threads
+  });
 
-  var fullUrl = outUrl + options.key
+  var fullUrl = outUrl + options.key;
   args.push(fullUrl);
 
   const ffmpeg = spawn(ffmpegPath, args);
 
   let screenshot = null;
 
+  // Afficher les logs pour comprendre les erreurs
   if (options.pipeOutput) {
-    ffmpeg.stdout.pipe(process.stdout);
-    ffmpeg.stderr.pipe(process.stderr);
+    ffmpeg.stdout.on('data', (data) => {
+      console.log(`stdout: ${data}`);
+    });
+    ffmpeg.stderr.on('data', (data) => {
+      console.error(`stderr: ${data}`);
+    });
   }
 
   while (true) {
@@ -39,7 +51,7 @@ module.exports.stream = async function (options) {
   }
 };
 
-const ffmpegArgs = (fps) => [
+const ffmpegArgs = ({ fps, resolution = '1280x720', preset = 'medium', rate = '2500k', threads = 2 }) => [
   // IN
   '-f', 'image2pipe',
   '-use_wallclock_as_timestamps', '1',
@@ -47,19 +59,20 @@ const ffmpegArgs = (fps) => [
   '-f', 'lavfi', '-i', 'anullsrc',
   // OUT
   '-deinterlace',
-  '-s', resolution,
+  '-s', resolution,  // Utilisation correcte de la résolution
   '-vsync', 'cfr',
   '-r', fps,
   '-g', (fps * 2),
   '-vcodec', 'libx264',
   '-x264opts', 'keyint=' + (fps * 2) + ':no-scenecut',
   '-preset', preset,
-  '-b:v', rate,
+  '-b:v', rate,  // Bitrate vidéo correct
   '-minrate', rate,
   '-maxrate', rate,
   '-bufsize', rate,
   '-pix_fmt', 'yuv420p',
   '-threads', threads,
-  '-f', 'lavfi', '-acodec', 'libmp3lame', '-ar', '44100', '-b:a', '128k',
+  // Remplacer par AAC pour YouTube
+  '-f', 'lavfi', '-acodec', 'aac', '-ar', '44100', '-b:a', '128k',
   '-f', 'flv',
 ];
