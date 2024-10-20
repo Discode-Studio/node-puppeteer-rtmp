@@ -7,30 +7,27 @@ module.exports.stream = async function (options) {
 
   await options.prepare(browser, page);
 
-  var ffmpegPath = options.ffmpeg || 'ffmpeg';
-  var fps = options.fps || 30;
-  var resolution = options.resolution || '1280x720';
-  var preset = options.preset || 'medium';
-  var rate = options.rate || '2500k';
-  var threads = options.threads || '2';
+  const ffmpegPath = options.ffmpeg || 'ffmpeg';
+  const fps = options.fps || 30;
+  const resolution = options.resolution || '1280x720';
+  const preset = options.preset || 'medium';
+  const rate = options.rate || '2500k';
+  const threads = options.threads || '2';
+  const outUrl = options.output || 'rtmp://a.rtmp.youtube.com/live2/';
 
-  var outUrl = options.output || 'rtmp://a.rtmp.youtube.com/live2/';
-
-  // Passer les paramètres correctement à ffmpegArgs
+  // Créez un fichier temporaire pour capturer l'audio et la vidéo
   const args = ffmpegArgs({
-    fps: fps,
-    resolution: resolution,
-    preset: preset,
-    rate: rate,
-    threads: threads
+    fps,
+    resolution,
+    preset,
+    rate,
+    threads
   });
 
-  var fullUrl = outUrl + options.key;
+  const fullUrl = outUrl + options.key;
   args.push(fullUrl);
 
   const ffmpeg = spawn(ffmpegPath, args);
-
-  let screenshot = null;
 
   // Afficher les logs pour comprendre les erreurs
   if (options.pipeOutput) {
@@ -44,30 +41,29 @@ module.exports.stream = async function (options) {
 
   while (true) {
     await options.render(browser, page);
-
-    screenshot = await page.screenshot({ type: 'jpeg' });
-
+    const screenshot = await page.screenshot({ type: 'jpeg' });
     await ffmpeg.stdin.write(screenshot);
   }
 };
 
 const ffmpegArgs = ({ fps, resolution = '1280x720', preset = 'medium', rate = '2500k', threads = 2 }) => [
-  // IN pour l'image
+  // IN pour la vidéo
   '-f', 'image2pipe',
   '-use_wallclock_as_timestamps', '1',
-  '-i', '-',
-  // IN pour l'audio : utiliser anullsrc si aucune source audio n'est disponible
-  '-f', 'lavfi', '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100',
+  '-i', '-',  // Capture d'image à partir du stdin
+  // Spécifier la source audio (peut être un flux ou un fichier, selon votre configuration)
+  '-f', 'pulse',      // Utiliser PulseAudio comme source d'audio (si sur Linux)
+  '-i', 'default',    // Utiliser le périphérique audio par défaut
   // OUT
   '-deinterlace',
-  '-s', resolution,  // Utilisation correcte de la résolution
+  '-s', resolution,
   '-vsync', 'cfr',
   '-r', fps,
   '-g', (fps * 2),
   '-vcodec', 'libx264',
   '-x264opts', 'keyint=' + (fps * 2) + ':no-scenecut',
   '-preset', preset,
-  '-b:v', rate,  // Bitrate vidéo correct
+  '-b:v', rate,
   '-minrate', rate,
   '-maxrate', rate,
   '-bufsize', rate,
@@ -75,6 +71,9 @@ const ffmpegArgs = ({ fps, resolution = '1280x720', preset = 'medium', rate = '2
   '-threads', threads,
   // Mixer vidéo et audio
   '-map', '0:v',        // carte la vidéo de l'entrée 0
-  '-map', '1:a',        // carte l'audio de l'entrée 1 (anullsrc)
+  '-map', '1:a',        // carte l'audio de l'entrée 1
+  '-acodec', 'aac',     // Codec audio pour la sortie
+  '-b:a', '128k',       // Bitrate audio
+  '-ar', '44100',       // Fréquence d'échantillonnage
   '-f', 'flv',
 ];
