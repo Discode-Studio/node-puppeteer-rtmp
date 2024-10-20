@@ -9,7 +9,7 @@ module.exports.stream = async function (options) {
 
   var ffmpegPath = options.ffmpeg || 'ffmpeg';
   var fps = options.fps || 30;
-  var resolution = options.resolution || '1920x1080'; // Résolution modifiée pour le plein écran
+  var resolution = options.resolution || '1280x720';
   var preset = options.preset || 'medium';
   var rate = options.rate || '2500k';
   var threads = options.threads || '2';
@@ -51,27 +51,28 @@ module.exports.stream = async function (options) {
   }
 };
 
-const ffmpegArgs = ({ fps, resolution = '1920x1080', preset = 'medium', rate = '2500k', threads = 2 }) => [
+const ffmpegArgs = ({ fps, resolution = '2480x720', preset = 'medium', rate = '2500k', threads = 2 }) => [
   // IN
   '-f', 'image2pipe',
   '-use_wallclock_as_timestamps', '1',
-  '-i', '-', // Entrée vidéo
-  '-f', 'alsa', '-i', 'default', // Remplacez 'alsa' par 'pulse' si vous utilisez PulseAudio
+  '-i', '-',
+  '-f', 'lavfi', '-i', 'anullsrc',
   // OUT
-  '-s', resolution,
+  '-deinterlace',
+  '-s', resolution,  // Utilisation correcte de la résolution
+  '-vsync', 'cfr',
   '-r', fps,
   '-g', (fps * 2),
   '-vcodec', 'libx264',
+  '-x264opts', 'keyint=' + (fps * 2) + ':no-scenecut',
   '-preset', preset,
-  '-b:v', rate,
+  '-b:v', rate,  // Bitrate vidéo correct
   '-minrate', rate,
   '-maxrate', rate,
   '-bufsize', rate,
   '-pix_fmt', 'yuv420p',
+  '-threads', threads,
+  // Remplacer par AAC pour YouTube
+  '-f', 'lavfi', '-acodec', 'mp3', '-ar', '44100', '-b:a', '128k',
   '-f', 'flv',
-  '-acodec', 'aac', // Codec audio
-  '-b:a', '128k',   // Bitrate audio
-  '-ar', '44100',   // Taux d'échantillonnage audio
-  // Ajoutez ici le nom de sortie
-  '-f', 'flv',      // Format de sortie
 ];
