@@ -7,7 +7,7 @@ puppeteer.launch({
 }).then(async browser => {
   const page = await browser.newPage();
 
-  await page.goto('https://codepen.io/hexagoncircle/full/joqYEj', { waitUntil: 'networkidle2' });
+  await page.goto('http://discode-studio.github.io/shortwave.bot/stream.htm', { waitUntil: 'networkidle2' });
 
   await stream({
     page: page,
