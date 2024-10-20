@@ -56,7 +56,7 @@ const ffmpegArgs = ({ fps, resolution = '2480x720', preset = 'medium', rate = '2
   '-f', 'image2pipe',
   '-use_wallclock_as_timestamps', '1',
   '-i', '-',
-  '-f', 'lavfi', '-i', 'anullsrc',
+  '-f', 'lavfi', '-i', 'default',
   // OUT
   '-deinterlace',
   '-s', resolution,  // Utilisation correcte de la résolution
