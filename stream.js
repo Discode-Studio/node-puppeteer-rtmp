@@ -39,7 +39,7 @@ module.exports.stream = async function (options) {
   }
 };
 
-const ffmpegArgs = (fps) => [
+const ffmpegArgs = ({ fps, resolution = '1280x720', preset = 'medium', rate = '2500k', threads = 2 }) => [
   // IN
   '-f', 'image2pipe',
   '-use_wallclock_as_timestamps', '1',
