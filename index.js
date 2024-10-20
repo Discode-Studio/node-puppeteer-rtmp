@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer');
-const { stream } = require('./lib/stream.js');
+const { stream } = require('./stream.js');
 
 puppeteer.launch({
   headless: true,
